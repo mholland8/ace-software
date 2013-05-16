@@ -77,15 +77,60 @@ public class UsefulSubSocket
 		}
 	}
 	
+	/**
+	 * Create a new Subscription socket.
+	 * Default behaviour of disconnect is to throw an exception from the recv method
+	 * Application must handle any reconnect logic and cope with any messages missed
+	 */
 	public UsefulSubSocket()
 	{
 		s = new Socket();
 	}
 	
+	/**
+	 * Create a new Subscription socket with reconnect logic.
+	 * Use only if you are not concerned with missing messages while the reconnect is taking place
+	 * 
+	 * @param opts specifies number of times to retry and interval between each reconnect attempt
+	 */
+	public UsefulSubSocket(ReconnectOptions opts)
+	{
+		reconnectOpts = opts;
+		
+		s = new Socket();
+	}
+	
 	public void connect(String hostname, int port) throws IOException
 	{
-		s.connect(new InetSocketAddress(hostname, port));
-		s.setTcpNoDelay(true);
+		// save the hostname and port in case we need to reconnect later
+		this.hostname = hostname;
+		this.port = port;
+		
+		reconnect();
+	}
+	
+	private void reconnect()
+	{
+		int attempts = 0;
+		int maxAttempts = 1;
+		
+		if (reconnectOpts != null)
+		{
+			maxAttempts = reconnectOpts.getNumRetries();
+		}
+		try
+		{
+			s.connect(new InetSocketAddress(hostname, port));
+			s.setTcpNoDelay(true);
+		}
+		catch (IOException ex)
+		{
+			logger.info("Failed to connect to %s:%d", hostname, port);
+			if (reconnectOpts != null)
+			{
+				// 
+			}
+		}
 	}
 	
 	public byte[] recv() throws IOException
@@ -100,6 +145,7 @@ public class UsefulSubSocket
 		{
 			// server has disappeared. Attempt to reconnect
 			// ToDo
+			reconnect();
 		}
 		
 		return bytes;
@@ -131,5 +177,9 @@ public class UsefulSubSocket
 		return bytes;
 	}
 	
-	private Socket	s	= null;	
+	private Socket	s;
+	private String  hostname;
+	private int     port;
+	
+	private ReconnectOptions reconnectOpts = null;
 }
