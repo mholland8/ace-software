@@ -41,7 +41,7 @@ public class UsefulPubSocket
     /**
      * Defines maximum size of client queue
      */
-    private static final int HIGH_WATER_MARK = 1024*1024;
+    private static final int HIGH_WATER_MARK = 1024;
 
     /**
      * @param args
