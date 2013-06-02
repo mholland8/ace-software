@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import com.useful.jdbc.DBReader;
+
 
 public class Main implements MessageListener {
 
@@ -21,6 +23,10 @@ public class Main implements MessageListener {
 		ApplicationContext appContext = new ClassPathXmlApplicationContext("beans.xml");
 		
 		logger.info("Spring Container initialised");
+		
+		
+		DBReader reader = (DBReader)appContext.getBean("dbReader");
+		reader.runQuery();
 	}
 	public void onMessage(Message arg0) {
 		if (arg0 instanceof TextMessage)
